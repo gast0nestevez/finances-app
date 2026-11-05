@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseDisplayDate } from "./dates.ts";
+import { isIsoMonth, parseDisplayDate } from "./dates.ts";
 import { currencySchema, exchangeRate, parseAmountToCents } from "./money.ts";
 
 const INVALID_AMOUNT_MESSAGE = "Ingresá un monto válido, por ejemplo 1.500,50";
@@ -69,6 +69,7 @@ const rateFormSchema = z.object({ rate: rateSchema });
 const categoryFormSchema = z.object({ name: nameSchema });
 const categoryUpdateFormSchema = z.object({ id: idSchema, name: nameSchema });
 const idFormSchema = z.object({ id: idSchema });
+const viewMonthSchema = z.string().refine(isIsoMonth, { message: "Mes inválido" });
 const fixedExpenseFormSchema = z.object({
   name: nameSchema,
   amount: positiveAmountSchema,
@@ -84,10 +85,13 @@ const expenseFormSchema = z.object({
   categoryId: optionalCategorySchema,
 });
 
+const expenseUpdateFormSchema = expenseFormSchema.extend({ id: idSchema, viewMonth: viewMonthSchema });
+
 export {
   categoryFormSchema,
   categoryUpdateFormSchema,
   expenseFormSchema,
+  expenseUpdateFormSchema,
   fixedExpenseActiveFormSchema,
   fixedExpenseFormSchema,
   fixedExpenseUpdateFormSchema,

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   categoryFormSchema,
   expenseFormSchema,
+  expenseUpdateFormSchema,
   fixedExpenseActiveFormSchema,
   fixedExpenseFormSchema,
   incomeFormSchema,
@@ -81,5 +82,32 @@ describe("form schemas", () => {
     expect(expenseFormSchema.safeParse({ ...base, date: "2026-02-10" }).success).toBe(false);
     const result = expenseFormSchema.safeParse({ ...base, date: "hoy" });
     expect(result.error?.issues[0]?.message).toContain("dd/mm/aaaa");
+  });
+
+  it("parses an expense update with its id and the month being viewed", () => {
+    const parsed = expenseUpdateFormSchema.parse({
+      id: "12",
+      viewMonth: "2026-11",
+      date: "05/12/2026",
+      description: "Dinner",
+      amount: "30",
+      currency: "USD",
+      categoryId: "",
+    });
+    expect(parsed).toEqual({
+      id: 12,
+      viewMonth: "2026-11",
+      date: "2026-12-05",
+      description: "Dinner",
+      amount: 3_000,
+      currency: "USD",
+      categoryId: null,
+    });
+  });
+
+  it("rejects an expense update without a valid id or view month", () => {
+    const base = { date: "05/12/2026", description: "x", amount: "1", currency: "ARS", categoryId: "" };
+    expect(expenseUpdateFormSchema.safeParse({ ...base, id: "0", viewMonth: "2026-11" }).success).toBe(false);
+    expect(expenseUpdateFormSchema.safeParse({ ...base, id: "1", viewMonth: "noviembre" }).success).toBe(false);
   });
 });
