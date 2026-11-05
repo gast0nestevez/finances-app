@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import * as schema from "./schema.ts";
@@ -18,5 +19,11 @@ const createDatabase = (path: string) => {
 
 type AppDatabase = ReturnType<typeof createDatabase>;
 
-export { createDatabase, DEFAULT_DATABASE_PATH };
+const createMigratedDatabase = (path: string): AppDatabase => {
+  const database = createDatabase(path);
+  migrate(database, { migrationsFolder: "drizzle" });
+  return database;
+};
+
+export { createDatabase, createMigratedDatabase, DEFAULT_DATABASE_PATH };
 export type { AppDatabase };
