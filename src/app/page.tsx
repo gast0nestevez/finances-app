@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import CategoryBars from "../components/category-bars.tsx";
+import type { CategoryBarRow } from "../components/category-bars.tsx";
 import { sectionClassName } from "../components/styles.ts";
 import { listExpensesByMonth } from "../db/expenses.ts";
 import { listActiveFixedExpensesForMonth } from "../db/fixed-expenses.ts";
@@ -7,6 +9,7 @@ import { findIncomeForMonth } from "../db/income.ts";
 import { getDatabase } from "../db/instance.ts";
 import { findInvestmentGoalForMonth } from "../db/investment-goal.ts";
 import { formatDisplayDate, formatDisplayMonth, shiftMonth, toIsoMonth } from "../lib/dates.ts";
+import { buildCategoryBreakdown, formatShare } from "../lib/category-breakdown.ts";
 import { buildBreakdown } from "../lib/month-breakdown.ts";
 import { summarizeMonth } from "../lib/month-summary.ts";
 import { formatMoney, money } from "../lib/money.ts";
@@ -118,12 +121,24 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
     );
   }
 
+  const monthExpenses = listExpensesByMonth(database, month);
+  const categoryBreakdown = buildCategoryBreakdown(monthExpenses, currency);
+  const widestCents = Math.max(0, ...categoryBreakdown.rows.map((row) => row.amount.amount));
+  const categoryRows: readonly CategoryBarRow[] = categoryBreakdown.rows.map((row) => ({
+    key: row.key,
+    label: row.label,
+    valueLabel: formatMoney(row.amount),
+    shareLabel: formatShare(row.share),
+    countLabel: row.count === 1 ? "1 gasto" : `${row.count} gastos`,
+    widthPercent: widestCents === 0 ? 0 : (row.amount.amount / widestCents) * 80,
+    isOther: row.isOther,
+  }));
   const summary = summarizeMonth(
     {
       salary: income.amount,
       fixedExpenses: listActiveFixedExpensesForMonth(database, month).map((expense) => expense.amount),
       investmentGoal: goal ?? money(0, "ARS"),
-      variableExpenses: listExpensesByMonth(database, month).map((expense) => ({
+      variableExpenses: monthExpenses.map((expense) => ({
         amount: expense.amount,
         rateAtRegistration: expense.rateAtRegistration,
       })),
@@ -170,6 +185,24 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
         <Stat label="Inversión" value={summary.investment} swatchClassName="bg-teal-600" />
         <Stat label="Gastos del mes" value={summary.variable} swatchClassName="bg-amber-500" />
         <Stat label="Sueldo" value={summary.salary} swatchClassName="bg-neutral-300" />
+      </section>
+
+      <section className={sectionClassName}>
+        <h2 className="text-lg font-medium">Gastos del mes por categoría</h2>
+        {categoryRows.length === 0 ? (
+          <p className="text-sm text-neutral-600">Todavía no hay gastos registrados en este mes.</p>
+        ) : (
+          <>
+            <p className="text-sm text-neutral-600">
+              Total: {formatMoney(categoryBreakdown.total)}. Cada gasto se convierte con la cotización del día en que se cargó.
+            </p>
+            <CategoryBars
+              rows={categoryRows}
+              totalLabel={formatMoney(categoryBreakdown.total)}
+              description={`Gastos del mes por categoría en ${currency}`}
+            />
+          </>
+        )}
       </section>
 
       <p className="text-xs text-neutral-600">
