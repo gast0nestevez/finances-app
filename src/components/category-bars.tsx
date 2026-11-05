@@ -64,7 +64,7 @@ const CategoryBars = ({ rows, totalLabel, description }: CategoryBarsProps) => {
               onFocus={(event) => showForElement(index, event.currentTarget)}
               onBlur={() => setTooltip(null)}
             >
-              <span className="w-36 shrink-0 truncate text-sm text-neutral-700" title={row.label}>
+              <span className="w-28 shrink-0 truncate text-sm text-neutral-700 sm:w-36" title={row.label}>
                 {row.label}
               </span>
               <span className="flex h-full min-w-0 flex-1 items-center gap-2 border-l border-(--chart-axis)">
