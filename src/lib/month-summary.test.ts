@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { exchangeRate, money } from "./money";
-import { summarizeMonth, type MonthInput } from "./month-summary";
+import { exchangeRate, money } from "./money.ts";
+import { summarizeMonth } from "./month-summary.ts";
+import type { MonthInput } from "./month-summary.ts";
 
 const currentRate = exchangeRate(1000);
 

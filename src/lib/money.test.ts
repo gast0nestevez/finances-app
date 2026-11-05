@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { convert, exchangeRate, money, parseAmountToCents, sum } from "./money";
+import { convert, exchangeRate, money, parseAmountToCents, sum } from "./money.ts";
 
 const rate = exchangeRate(1200);
 

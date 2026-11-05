@@ -1,18 +1,19 @@
-import { convert, money, sum, type Currency, type ExchangeRate, type Money } from "./money";
+import { convert, money, sum } from "./money.ts";
+import type { Currency, ExchangeRate, Money } from "./money.ts";
 
-export type VariableExpense = Readonly<{
+type VariableExpense = Readonly<{
   amount: Money;
   rateAtRegistration: ExchangeRate;
 }>;
 
-export type MonthInput = Readonly<{
+type MonthInput = Readonly<{
   salary: Money;
   fixedExpenses: readonly Money[];
   investmentGoal: Money;
   variableExpenses: readonly VariableExpense[];
 }>;
 
-export type MonthSummary = Readonly<{
+type MonthSummary = Readonly<{
   currency: Currency;
   salary: Money;
   fixed: Money;
@@ -21,11 +22,11 @@ export type MonthSummary = Readonly<{
   free: Money;
 }>;
 
-export function summarizeMonth(
+const summarizeMonth = (
   input: MonthInput,
   displayCurrency: Currency,
   currentRate: ExchangeRate,
-): MonthSummary {
+): MonthSummary => {
   const salary = convert(input.salary, displayCurrency, currentRate);
   const fixed = sum(input.fixedExpenses, displayCurrency, currentRate);
   const investment = convert(input.investmentGoal, displayCurrency, currentRate);
@@ -40,4 +41,7 @@ export function summarizeMonth(
     displayCurrency,
   );
   return { currency: displayCurrency, salary, fixed, investment, variable, free };
-}
+};
+
+export { summarizeMonth };
+export type { MonthInput, MonthSummary, VariableExpense };
