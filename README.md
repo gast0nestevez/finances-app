@@ -23,6 +23,17 @@ libre = sueldo − gastos fijos activos − objetivo de inversión − gastos de
 - El objetivo de inversión puede estar en dólares (por ejemplo 500 USD), por lo que su valor en pesos cambia con la cotización.
 - Cada monto se guarda en su moneda original, como centavos enteros, y se convierte solo al mostrarlo.
 
+### Historial de meses pasados
+
+Los datos que cambian con el tiempo se guardan **por mes**, así que modificar algo hoy no reescribe los meses anteriores:
+
+- **Sueldo y objetivo de inversión:** cada mes toma el último valor definido hasta ese mes.
+- **Gastos fijos:** cada cambio (monto, nombre, activar o desactivar) rige **desde el mes actual** en adelante. Un gasto fijo nuevo solo cuenta desde el mes en que lo agregás.
+- **Cotización:** un mes pasado se calcula con la última cotización guardada hasta su fin. Si no hay ninguna de ese período, usa la actual y el Dashboard lo avisa.
+- **Gastos del día a día:** siempre usaron la cotización del momento en que se cargaron.
+
+Al actualizar desde una versión anterior, tus gastos fijos y tu objetivo de inversión se conservan y pasan a regir desde siempre, por lo que los números no cambian.
+
 ### Cotización
 
 Se usa el dólar MEP (precio de venta) de [dolarapi.com](https://dolarapi.com), que es una estimación y no tiene que ser exacta.
@@ -134,7 +145,9 @@ La lógica de cálculo (`src/lib/`) no depende de la base ni de React, y es lo q
 
 ## Limitaciones conocidas
 
-- Los meses pasados se calculan con los gastos fijos activos de hoy y la cotización actual. No se guarda un histórico de qué fijos existían ni a qué valor.
+- Los cambios en gastos fijos y objetivo de inversión siempre rigen desde el mes actual. Todavía no se puede corregir el valor de un mes pasado.
+- La cotización de un mes pasado depende de los días en que abriste la app. Cuantos más días la uses, más precisa es.
+- **Eliminar** un gasto fijo lo borra también de todos los meses anteriores. Para dejar de contarlo desde ahora sin tocar el pasado, usá **Desactivar**.
 - Un gasto cargado con una fecha pasada usa la cotización de hoy, no la de esa fecha.
 - Los gastos que no se repiten todos los meses (por ejemplo un seguro anual) todavía no están contemplados.
 - Es de uso individual: no hay usuarios ni autenticación. No la expongas a internet.
