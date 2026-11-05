@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, lt } from "drizzle-orm";
+import { shiftMonth } from "../lib/dates.ts";
 import { exchangeRate, money } from "../lib/money.ts";
 import type { ExchangeRate, Money } from "../lib/money.ts";
 import type { AppDatabase } from "./client.ts";
@@ -22,15 +23,6 @@ type NewExpense = Readonly<{
   rateAtRegistration: ExchangeRate;
 }>;
 
-const nextMonth = (month: string): string => {
-  const [yearPart, monthPart] = month.split("-");
-  const year = Number(yearPart);
-  const index = Number(monthPart);
-  const nextYear = index === 12 ? year + 1 : year;
-  const nextIndex = index === 12 ? 1 : index + 1;
-  return `${nextYear}-${String(nextIndex).padStart(2, "0")}`;
-};
-
 const listExpensesByMonth = (database: AppDatabase, month: string): readonly Expense[] =>
   database
     .select({
@@ -45,7 +37,7 @@ const listExpensesByMonth = (database: AppDatabase, month: string): readonly Exp
     })
     .from(expenses)
     .leftJoin(categories, eq(expenses.categoryId, categories.id))
-    .where(and(gte(expenses.date, `${month}-01`), lt(expenses.date, `${nextMonth(month)}-01`)))
+    .where(and(gte(expenses.date, `${month}-01`), lt(expenses.date, `${shiftMonth(month, 1)}-01`)))
     .orderBy(desc(expenses.date), desc(expenses.id))
     .all()
     .map((row) => ({
