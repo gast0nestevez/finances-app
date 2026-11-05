@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import ActionForm from "../../components/action-form.tsx";
-import CurrencySelect from "../../components/currency-select.tsx";
-import { dangerButtonClassName, inputClassName, sectionClassName } from "../../components/styles.ts";
+import { dangerButtonClassName, sectionClassName } from "../../components/styles.ts";
 import { listCategories } from "../../db/categories.ts";
 import { listExpensesByMonth } from "../../db/expenses.ts";
 import { getDatabase } from "../../db/instance.ts";
 import { formatDisplayDate, formatDisplayMonth, shiftMonth, toIsoDate, toIsoMonth } from "../../lib/dates.ts";
 import { sumVariableExpenses } from "../../lib/month-summary.ts";
-import { convert, formatMoney } from "../../lib/money.ts";
+import { convert, formatCentsForInput, formatMoney } from "../../lib/money.ts";
 import type { Currency } from "../../lib/money.ts";
 import { resolveMonth } from "../search-params.ts";
 import type { SearchParamValue } from "../search-params.ts";
-import { createExpenseAction, deleteExpenseAction } from "./actions.ts";
+import { createExpenseAction, deleteExpenseAction, updateExpenseAction } from "./actions.ts";
+import ExpenseFields from "./expense-fields.tsx";
 
 type ExpensesPageProps = Readonly<{
   searchParams: Promise<Readonly<Record<string, SearchParamValue>>>;
@@ -42,39 +42,16 @@ const ExpensesPage = async ({ searchParams }: ExpensesPageProps) => {
       <section className={sectionClassName}>
         <h2 className="text-lg font-medium">Registrar gasto</h2>
         <ActionForm action={createExpenseAction} submitLabel="Registrar">
-          <label className="flex flex-col gap-1 text-sm">
-            Fecha
-            <input
-              name="date"
-              required
-              inputMode="numeric"
-              placeholder="dd/mm/aaaa"
-              pattern="\d{1,2}/\d{1,2}/\d{4}"
-              title="Fecha con formato dd/mm/aaaa"
-              defaultValue={formatDisplayDate(toIsoDate(now))}
-              className={`${inputClassName} w-36`}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Descripción
-            <input name="description" required className={inputClassName} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Monto
-            <input name="amount" inputMode="decimal" required className={inputClassName} />
-          </label>
-          <CurrencySelect defaultValue="ARS" />
-          <label className="flex flex-col gap-1 text-sm">
-            Categoría
-            <select name="categoryId" defaultValue="" className={inputClassName}>
-              <option value="">Sin categoría</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ExpenseFields
+            categories={categories}
+            values={{
+              date: formatDisplayDate(toIsoDate(now)),
+              description: "",
+              amount: "",
+              currency: "ARS",
+              categoryId: "",
+            }}
+          />
         </ActionForm>
       </section>
 
@@ -120,6 +97,25 @@ const ExpensesPage = async ({ searchParams }: ExpensesPageProps) => {
                     </button>
                   </form>
                 </div>
+                <details className="w-full">
+                  <summary className="cursor-pointer text-sm text-neutral-700 hover:underline">Editar</summary>
+                  <div className="pt-3">
+                    <ActionForm action={updateExpenseAction} submitLabel="Guardar cambios">
+                      <input type="hidden" name="id" value={expense.id} />
+                      <input type="hidden" name="viewMonth" value={month} />
+                      <ExpenseFields
+                        categories={categories}
+                        values={{
+                          date: formatDisplayDate(expense.date),
+                          description: expense.description,
+                          amount: formatCentsForInput(expense.amount.amount),
+                          currency: expense.amount.currency,
+                          categoryId: expense.categoryId === null ? "" : String(expense.categoryId),
+                        }}
+                      />
+                    </ActionForm>
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
