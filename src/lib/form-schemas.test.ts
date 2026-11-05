@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   categoryFormSchema,
+  expenseFormSchema,
+  fixedExpenseActiveFormSchema,
+  fixedExpenseFormSchema,
   incomeFormSchema,
   investmentGoalFormSchema,
   rateFormSchema,
@@ -39,5 +42,37 @@ describe("form schemas", () => {
   it("trims category names and rejects empty ones", () => {
     expect(categoryFormSchema.parse({ name: "  Food " }).name).toBe("Food");
     expect(categoryFormSchema.safeParse({ name: "   " }).success).toBe(false);
+  });
+
+  it("requires a positive amount for fixed expenses", () => {
+    expect(fixedExpenseFormSchema.safeParse({ name: "Rent", amount: "0", currency: "ARS" }).success).toBe(false);
+    expect(fixedExpenseFormSchema.parse({ name: "Claude", amount: "20", currency: "USD" })).toEqual({
+      name: "Claude",
+      amount: 2_000,
+      currency: "USD",
+    });
+  });
+
+  it("parses the active flag", () => {
+    expect(fixedExpenseActiveFormSchema.parse({ id: "3", active: "false" })).toEqual({ id: 3, active: false });
+    expect(fixedExpenseActiveFormSchema.safeParse({ id: "3", active: "maybe" }).success).toBe(false);
+  });
+
+  it("parses an expense with and without category", () => {
+    const base = { date: "2026-11-04", description: " Lunch ", amount: "5.000", currency: "ARS" };
+    expect(expenseFormSchema.parse({ ...base, categoryId: "" })).toEqual({
+      date: "2026-11-04",
+      description: "Lunch",
+      amount: 500_000,
+      currency: "ARS",
+      categoryId: null,
+    });
+    expect(expenseFormSchema.parse({ ...base, categoryId: "7" }).categoryId).toBe(7);
+  });
+
+  it("rejects impossible dates and empty descriptions", () => {
+    const base = { amount: "10", currency: "ARS", categoryId: "" };
+    expect(expenseFormSchema.safeParse({ ...base, date: "2026-02-30", description: "x" }).success).toBe(false);
+    expect(expenseFormSchema.safeParse({ ...base, date: "2026-02-10", description: "  " }).success).toBe(false);
   });
 });
