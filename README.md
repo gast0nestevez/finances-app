@@ -11,6 +11,8 @@ Está pensada para correr **localmente en tu PC**, sin cuentas ni servicios exte
 - **Fijos (`/fixed`)**: gastos mensuales recurrentes, en ARS o USD, que se pueden activar y desactivar sin borrarlos.
 - **Configuración (`/settings`)**: sueldo mensual, objetivo de inversión, cotización del dólar y lista editable de categorías.
 
+Las fechas se muestran y se ingresan como `dd/mm/aaaa`, y los meses como `mm/aaaa`. Internamente se guardan en formato ISO (`aaaa-mm-dd`), que ordena bien en la base.
+
 ### Cómo se calcula el libre
 
 ```
