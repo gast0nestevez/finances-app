@@ -6,7 +6,7 @@ import { listActiveFixedExpenses } from "../db/fixed-expenses.ts";
 import { findIncomeForMonth } from "../db/income.ts";
 import { getDatabase } from "../db/instance.ts";
 import { findInvestmentGoal } from "../db/investment-goal.ts";
-import { shiftMonth, toIsoMonth } from "../lib/dates.ts";
+import { formatDisplayDate, formatDisplayMonth, shiftMonth, toIsoMonth } from "../lib/dates.ts";
 import { buildBreakdown } from "../lib/month-breakdown.ts";
 import { summarizeMonth } from "../lib/month-summary.ts";
 import { formatMoney, money } from "../lib/money.ts";
@@ -57,7 +57,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
         <Link href={dashboardHref(shiftMonth(month, -1), currency)} aria-label="Mes anterior" className="px-2 hover:underline">
           ←
         </Link>
-        <h1 className="text-2xl font-semibold">{month}</h1>
+        <h1 className="text-2xl font-semibold">{formatDisplayMonth(month)}</h1>
         <Link href={dashboardHref(shiftMonth(month, 1), currency)} aria-label="Mes siguiente" className="px-2 hover:underline">
           →
         </Link>
@@ -168,8 +168,8 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
       <p className="text-xs text-neutral-600">
         Cotización: {formatMoney(money(Math.round(rate.rate * 100), "ARS"))} por dólar (
         {rate.source === "api" ? "MEP" : "manual"}
-        {rate.stale ? `, desactualizada, del ${rate.date}` : ""}).
-        {income.inherited ? ` Sueldo heredado de ${income.month}.` : ""}
+        {rate.stale ? `, desactualizada, del ${formatDisplayDate(rate.date)}` : ""}).
+        {income.inherited ? ` Sueldo heredado de ${formatDisplayMonth(income.month)}.` : ""}
         {goal === null ? " Todavía no definiste un objetivo de inversión." : ""}
       </p>
     </div>

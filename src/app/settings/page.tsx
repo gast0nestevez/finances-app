@@ -3,7 +3,7 @@ import { listCategories } from "../../db/categories.ts";
 import { findIncomeForMonth } from "../../db/income.ts";
 import { getDatabase } from "../../db/instance.ts";
 import { findInvestmentGoal } from "../../db/investment-goal.ts";
-import { toIsoMonth } from "../../lib/dates.ts";
+import { formatDisplayDate, formatDisplayMonth, toIsoMonth } from "../../lib/dates.ts";
 import { formatCentsForInput, formatMoney, money } from "../../lib/money.ts";
 import type { CurrentRate } from "../../services/exchange-rate-service.ts";
 import ActionForm from "../../components/action-form.tsx";
@@ -24,7 +24,7 @@ const describeRate = (rate: CurrentRate | null): string => {
   }
   const value = formatMoney(money(Math.round(rate.rate * 100), "ARS"));
   const origin = rate.source === "api" ? "MEP (dolarapi.com)" : "manual";
-  const staleNote = rate.stale ? ` · desactualizada, última del ${rate.date}` : "";
+  const staleNote = rate.stale ? ` · desactualizada, última del ${formatDisplayDate(rate.date)}` : "";
   return `${value} por dólar · ${origin}${staleNote}`;
 };
 
@@ -44,8 +44,8 @@ const SettingsPage = async () => {
       <section className={sectionClassName}>
         <h2 className="text-lg font-medium">Sueldo mensual (ARS)</h2>
         <p className="text-sm text-neutral-600">
-          Se guarda para {month} y se mantiene en los meses siguientes hasta que lo cambies.
-          {incomeEntry?.inherited === true ? ` Valor actual heredado de ${incomeEntry.month}.` : ""}
+          Se guarda para {formatDisplayMonth(month)} y se mantiene en los meses siguientes hasta que lo cambies.
+          {incomeEntry?.inherited === true ? ` Valor actual heredado de ${formatDisplayMonth(incomeEntry.month)}.` : ""}
         </p>
         <ActionForm action={saveIncomeAction} submitLabel="Guardar sueldo">
           <label className="flex flex-col gap-1 text-sm">

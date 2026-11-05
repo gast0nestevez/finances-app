@@ -6,7 +6,7 @@ import { dangerButtonClassName, inputClassName, sectionClassName } from "../../c
 import { listCategories } from "../../db/categories.ts";
 import { listExpensesByMonth } from "../../db/expenses.ts";
 import { getDatabase } from "../../db/instance.ts";
-import { shiftMonth, toIsoDate, toIsoMonth } from "../../lib/dates.ts";
+import { formatDisplayDate, formatDisplayMonth, shiftMonth, toIsoDate, toIsoMonth } from "../../lib/dates.ts";
 import { sumVariableExpenses } from "../../lib/month-summary.ts";
 import { convert, formatMoney } from "../../lib/money.ts";
 import type { Currency } from "../../lib/money.ts";
@@ -44,7 +44,16 @@ const ExpensesPage = async ({ searchParams }: ExpensesPageProps) => {
         <ActionForm action={createExpenseAction} submitLabel="Registrar">
           <label className="flex flex-col gap-1 text-sm">
             Fecha
-            <input type="date" name="date" required defaultValue={toIsoDate(now)} className={inputClassName} />
+            <input
+              name="date"
+              required
+              inputMode="numeric"
+              placeholder="dd/mm/aaaa"
+              pattern="\d{1,2}/\d{1,2}/\d{4}"
+              title="Fecha con formato dd/mm/aaaa"
+              defaultValue={formatDisplayDate(toIsoDate(now))}
+              className={`${inputClassName} w-36`}
+            />
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Descripción
@@ -72,11 +81,11 @@ const ExpensesPage = async ({ searchParams }: ExpensesPageProps) => {
       <section className={sectionClassName}>
         <div className="flex items-center justify-between">
           <Link href={`/expenses?month=${shiftMonth(month, -1)}`} className="text-sm hover:underline">
-            ← {shiftMonth(month, -1)}
+            ← {formatDisplayMonth(shiftMonth(month, -1))}
           </Link>
-          <h2 className="text-lg font-medium">{month}</h2>
+          <h2 className="text-lg font-medium">{formatDisplayMonth(month)}</h2>
           <Link href={`/expenses?month=${shiftMonth(month, 1)}`} className="text-sm hover:underline">
-            {shiftMonth(month, 1)} →
+            {formatDisplayMonth(shiftMonth(month, 1))} →
           </Link>
         </div>
         <p className="text-sm text-neutral-600">
@@ -91,7 +100,7 @@ const ExpensesPage = async ({ searchParams }: ExpensesPageProps) => {
                 <div>
                   <p className="font-medium">{expense.description}</p>
                   <p className="text-xs text-neutral-600">
-                    {expense.date} · {expense.categoryName ?? "Sin categoría"}
+                    {formatDisplayDate(expense.date)} · {expense.categoryName ?? "Sin categoría"}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
