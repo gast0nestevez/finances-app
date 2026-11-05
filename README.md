@@ -7,7 +7,7 @@ Está pensada para correr **localmente en tu PC**, sin cuentas ni servicios exte
 ## Funcionalidades
 
 - **Dashboard (`/`)**: resumen del mes (sueldo, fijos, inversión, gastos y libre), barra de distribución, selector de mes y toggle ARS/USD.
-- **Gastos (`/expenses`)**: carga rápida de gastos del día a día con fecha, monto, moneda y categoría. Navegación por mes y totales.
+- **Gastos (`/expenses`)**: carga rápida de gastos del día a día con fecha, monto, moneda y categoría. Cada gasto se puede editar o eliminar. Navegación por mes y totales.
 - **Fijos (`/fixed`)**: gastos mensuales recurrentes, en ARS o USD, que se pueden activar y desactivar sin borrarlos.
 - **Configuración (`/settings`)**: sueldo mensual, objetivo de inversión, cotización del dólar y lista editable de categorías.
 
@@ -148,7 +148,7 @@ La lógica de cálculo (`src/lib/`) no depende de la base ni de React, y es lo q
 - Los cambios en gastos fijos y objetivo de inversión siempre rigen desde el mes actual. Todavía no se puede corregir el valor de un mes pasado.
 - La cotización de un mes pasado depende de los días en que abriste la app. Cuantos más días la uses, más precisa es.
 - **Eliminar** un gasto fijo lo borra también de todos los meses anteriores. Para dejar de contarlo desde ahora sin tocar el pasado, usá **Desactivar**.
-- Un gasto cargado con una fecha pasada usa la cotización de hoy, no la de esa fecha.
+- Un gasto cargado con una fecha pasada usa la cotización de hoy, no la de esa fecha. Al editar un gasto se conserva la cotización con la que se registró, aunque cambies el monto, la moneda o la fecha.
 - Los gastos que no se repiten todos los meses (por ejemplo un seguro anual) todavía no están contemplados.
 - Es de uso individual: no hay usuarios ni autenticación. No la expongas a internet.
 
