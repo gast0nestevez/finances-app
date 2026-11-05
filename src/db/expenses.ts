@@ -23,6 +23,13 @@ type NewExpense = Readonly<{
   rateAtRegistration: ExchangeRate;
 }>;
 
+type ExpenseChanges = Readonly<{
+  date: string;
+  description: string;
+  amount: Money;
+  categoryId: number | null;
+}>;
+
 const listExpensesByMonth = (database: AppDatabase, month: string): readonly Expense[] =>
   database
     .select({
@@ -64,9 +71,26 @@ const createExpense = (database: AppDatabase, input: NewExpense): void => {
     .run();
 };
 
+const updateExpense = (database: AppDatabase, id: number, changes: ExpenseChanges): void => {
+  const result = database
+    .update(expenses)
+    .set({
+      date: changes.date,
+      description: changes.description,
+      amountCents: changes.amount.amount,
+      currency: changes.amount.currency,
+      categoryId: changes.categoryId,
+    })
+    .where(eq(expenses.id, id))
+    .run();
+  if (result.changes === 0) {
+    throw new Error(`Expense ${id} does not exist`);
+  }
+};
+
 const deleteExpense = (database: AppDatabase, id: number): void => {
   database.delete(expenses).where(eq(expenses.id, id)).run();
 };
 
-export { createExpense, deleteExpense, listExpensesByMonth };
-export type { Expense, NewExpense };
+export { createExpense, deleteExpense, listExpensesByMonth, updateExpense };
+export type { Expense, ExpenseChanges, NewExpense };
