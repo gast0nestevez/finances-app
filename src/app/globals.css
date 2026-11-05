@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+:root {
+  --chart-series-1: #2a78d6;
+  --chart-other: #898781;
+  --chart-axis: #c3c2b7;
+}
