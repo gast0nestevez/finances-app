@@ -5,9 +5,10 @@ import { getDatabase } from "../../db/instance.ts";
 import { findInvestmentGoal } from "../../db/investment-goal.ts";
 import { toIsoMonth } from "../../lib/dates.ts";
 import { formatCentsForInput, formatMoney, money } from "../../lib/money.ts";
-import { getCurrentRate } from "../../services/exchange-rate-service.ts";
 import type { CurrentRate } from "../../services/exchange-rate-service.ts";
 import ActionForm from "../../components/action-form.tsx";
+import { dangerButtonClassName, inputClassName, sectionClassName } from "../../components/styles.ts";
+import { loadRate } from "../load-rate.ts";
 import {
   addCategoryAction,
   deleteCategoryAction,
@@ -16,17 +17,6 @@ import {
   saveInvestmentGoalAction,
   saveManualRateAction,
 } from "./actions.ts";
-
-const inputClassName = "rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm";
-const sectionClassName = "space-y-3 rounded-lg border border-neutral-200 bg-white p-5";
-
-const loadRate = async (): Promise<CurrentRate | null> => {
-  try {
-    return await getCurrentRate({ database: getDatabase() });
-  } catch {
-    return null;
-  }
-};
 
 const describeRate = (rate: CurrentRate | null): string => {
   if (rate === null) {
@@ -116,7 +106,7 @@ const SettingsPage = async () => {
               </ActionForm>
               <form action={deleteCategoryAction}>
                 <input type="hidden" name="id" value={category.id} />
-                <button type="submit" className="text-sm text-red-700 hover:underline">
+                <button type="submit" className={dangerButtonClassName}>
                   Eliminar
                 </button>
               </form>
