@@ -6,20 +6,19 @@ import { dangerButtonClassName, inputClassName, sectionClassName } from "../../c
 import { listCategories } from "../../db/categories.ts";
 import { listExpensesByMonth } from "../../db/expenses.ts";
 import { getDatabase } from "../../db/instance.ts";
-import { isIsoMonth, shiftMonth, toIsoDate, toIsoMonth } from "../../lib/dates.ts";
+import { shiftMonth, toIsoDate, toIsoMonth } from "../../lib/dates.ts";
 import { sumVariableExpenses } from "../../lib/month-summary.ts";
 import { convert, formatMoney } from "../../lib/money.ts";
 import type { Currency } from "../../lib/money.ts";
+import { resolveMonth } from "../search-params.ts";
+import type { SearchParamValue } from "../search-params.ts";
 import { createExpenseAction, deleteExpenseAction } from "./actions.ts";
 
 type ExpensesPageProps = Readonly<{
-  searchParams: Promise<Readonly<Record<string, string | string[] | undefined>>>;
+  searchParams: Promise<Readonly<Record<string, SearchParamValue>>>;
 }>;
 
 const otherCurrency = (currency: Currency): Currency => (currency === "ARS" ? "USD" : "ARS");
-
-const resolveMonth = (value: string | string[] | undefined, fallback: string): string =>
-  typeof value === "string" && isIsoMonth(value) ? value : fallback;
 
 const ExpensesPage = async ({ searchParams }: ExpensesPageProps) => {
   await connection();
