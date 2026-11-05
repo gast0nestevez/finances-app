@@ -7,6 +7,13 @@ const toIsoMonth = (date: Date): string => `${date.getFullYear()}-${pad(date.get
 
 const MONTH_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/;
 
+const monthOfDate = (isoDate: string): string => {
+  if (!isIsoDate(isoDate)) {
+    throw new RangeError(`Invalid date: ${isoDate}`);
+  }
+  return isoDate.slice(0, 7);
+};
+
 const isIsoMonth = (value: string): boolean => MONTH_PATTERN.test(value);
 
 const shiftMonth = (month: string, delta: number): string => {
@@ -59,6 +66,7 @@ export {
   formatDisplayMonth,
   isIsoDate,
   isIsoMonth,
+  monthOfDate,
   parseDisplayDate,
   shiftMonth,
   toIsoDate,

@@ -4,6 +4,7 @@ import {
   formatDisplayMonth,
   isIsoDate,
   isIsoMonth,
+  monthOfDate,
   parseDisplayDate,
   shiftMonth,
   toIsoDate,
@@ -93,5 +94,15 @@ describe("parseDisplayDate", () => {
 
   it("round trips with formatDisplayDate", () => {
     expect(parseDisplayDate(formatDisplayDate("2026-12-31"))).toBe("2026-12-31");
+  });
+});
+
+describe("monthOfDate", () => {
+  it("returns the month of an ISO date", () => {
+    expect(monthOfDate("2026-12-31")).toBe("2026-12");
+  });
+
+  it("rejects invalid dates", () => {
+    expect(() => monthOfDate("2026-02-30")).toThrow(RangeError);
   });
 });
