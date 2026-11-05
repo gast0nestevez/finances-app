@@ -8,6 +8,7 @@ import {
   updateFixedExpense,
 } from "../../db/fixed-expenses.ts";
 import { getDatabase } from "../../db/instance.ts";
+import { toIsoMonth } from "../../lib/dates.ts";
 import type { ActionState } from "../../components/action-state.ts";
 import {
   fixedExpenseActiveFormSchema,
@@ -29,10 +30,11 @@ const createFixedExpenseAction = async (
   formData: FormData,
 ): Promise<ActionState> =>
   runAction(fixedExpenseFormSchema, formData, "Gasto fijo agregado", FIXED_PATHS, (input) => {
-    createFixedExpense(getDatabase(), {
-      name: input.name,
-      amount: money(input.amount, input.currency),
-    });
+    createFixedExpense(
+      getDatabase(),
+      { name: input.name, amount: money(input.amount, input.currency) },
+      toIsoMonth(new Date()),
+    );
   });
 
 const updateFixedExpenseAction = async (
@@ -40,16 +42,18 @@ const updateFixedExpenseAction = async (
   formData: FormData,
 ): Promise<ActionState> =>
   runAction(fixedExpenseUpdateFormSchema, formData, "Gasto fijo actualizado", FIXED_PATHS, (input) => {
-    updateFixedExpense(getDatabase(), input.id, {
-      name: input.name,
-      amount: money(input.amount, input.currency),
-    });
+    updateFixedExpense(
+      getDatabase(),
+      input.id,
+      { name: input.name, amount: money(input.amount, input.currency) },
+      toIsoMonth(new Date()),
+    );
   });
 
 const setFixedExpenseActiveAction = async (formData: FormData): Promise<void> => {
   const parsed = fixedExpenseActiveFormSchema.safeParse(Object.fromEntries(formData));
   if (parsed.success) {
-    setFixedExpenseActive(getDatabase(), parsed.data.id, parsed.data.active);
+    setFixedExpenseActive(getDatabase(), parsed.data.id, parsed.data.active, toIsoMonth(new Date()));
     refresh();
   }
 };

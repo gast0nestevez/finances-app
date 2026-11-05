@@ -7,8 +7,9 @@ import {
   secondaryButtonClassName,
   sectionClassName,
 } from "../../components/styles.ts";
-import { listFixedExpenses } from "../../db/fixed-expenses.ts";
+import { listFixedExpensesForMonth } from "../../db/fixed-expenses.ts";
 import { getDatabase } from "../../db/instance.ts";
+import { formatDisplayMonth, toIsoMonth } from "../../lib/dates.ts";
 import { formatCentsForInput, formatMoney, sum } from "../../lib/money.ts";
 import { loadRate } from "../load-rate.ts";
 import {
@@ -20,7 +21,8 @@ import {
 
 const FixedExpensesPage = async () => {
   await connection();
-  const fixedExpenses = listFixedExpenses(getDatabase());
+  const month = toIsoMonth(new Date());
+  const fixedExpenses = listFixedExpensesForMonth(getDatabase(), month);
   const active = fixedExpenses.filter((expense) => expense.active);
   const rate = await loadRate();
   const totals =
@@ -34,6 +36,9 @@ const FixedExpensesPage = async () => {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Gastos fijos</h1>
+      <p className="text-sm text-neutral-600">
+        Los cambios rigen desde {formatDisplayMonth(month)} en adelante. Los meses anteriores conservan los valores que tenían.
+      </p>
 
       <section className={sectionClassName}>
         <h2 className="text-lg font-medium">Total mensual de gastos activos</h2>
@@ -94,7 +99,7 @@ const FixedExpensesPage = async () => {
                   <form action={deleteFixedExpenseAction}>
                     <input type="hidden" name="id" value={expense.id} />
                     <button type="submit" className={dangerButtonClassName}>
-                      Eliminar
+                      Eliminar (también del historial)
                     </button>
                   </form>
                 </div>

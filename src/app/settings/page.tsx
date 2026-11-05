@@ -2,7 +2,7 @@ import { connection } from "next/server";
 import { listCategories } from "../../db/categories.ts";
 import { findIncomeForMonth } from "../../db/income.ts";
 import { getDatabase } from "../../db/instance.ts";
-import { findInvestmentGoal } from "../../db/investment-goal.ts";
+import { findInvestmentGoalForMonth } from "../../db/investment-goal.ts";
 import { formatDisplayDate, formatDisplayMonth, toIsoMonth } from "../../lib/dates.ts";
 import { formatCentsForInput, formatMoney, money } from "../../lib/money.ts";
 import type { CurrentRate } from "../../services/exchange-rate-service.ts";
@@ -33,7 +33,8 @@ const SettingsPage = async () => {
   const database = getDatabase();
   const month = toIsoMonth(new Date());
   const incomeEntry = findIncomeForMonth(database, month);
-  const goal = findInvestmentGoal(database);
+  const goalEntry = findInvestmentGoalForMonth(database, month);
+  const goal = goalEntry?.goal ?? null;
   const categoryList = listCategories(database);
   const rate = await loadRate();
 
@@ -44,7 +45,7 @@ const SettingsPage = async () => {
       <section className={sectionClassName}>
         <h2 className="text-lg font-medium">Sueldo mensual (ARS)</h2>
         <p className="text-sm text-neutral-600">
-          Se guarda para {formatDisplayMonth(month)} y se mantiene en los meses siguientes hasta que lo cambies.
+          Se guarda para {formatDisplayMonth(month)} y se mantiene en los meses siguientes hasta que lo cambies. Los meses anteriores conservan su sueldo.
           {incomeEntry?.inherited === true ? ` Valor actual heredado de ${formatDisplayMonth(incomeEntry.month)}.` : ""}
         </p>
         <ActionForm action={saveIncomeAction} submitLabel="Guardar sueldo">
@@ -63,6 +64,10 @@ const SettingsPage = async () => {
 
       <section className={sectionClassName}>
         <h2 className="text-lg font-medium">Objetivo de inversión mensual</h2>
+        <p className="text-sm text-neutral-600">
+          Se guarda para {formatDisplayMonth(month)} y se mantiene en los meses siguientes. Los meses anteriores conservan su objetivo.
+          {goalEntry?.inherited === true ? ` Valor actual heredado de ${formatDisplayMonth(goalEntry.month)}.` : ""}
+        </p>
         <ActionForm action={saveInvestmentGoalAction} submitLabel="Guardar objetivo">
           <label className="flex flex-col gap-1 text-sm">
             Monto

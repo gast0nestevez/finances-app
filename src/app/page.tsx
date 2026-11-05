@@ -2,15 +2,16 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { sectionClassName } from "../components/styles.ts";
 import { listExpensesByMonth } from "../db/expenses.ts";
-import { listActiveFixedExpenses } from "../db/fixed-expenses.ts";
+import { listActiveFixedExpensesForMonth } from "../db/fixed-expenses.ts";
 import { findIncomeForMonth } from "../db/income.ts";
 import { getDatabase } from "../db/instance.ts";
-import { findInvestmentGoal } from "../db/investment-goal.ts";
+import { findInvestmentGoalForMonth } from "../db/investment-goal.ts";
 import { formatDisplayDate, formatDisplayMonth, shiftMonth, toIsoMonth } from "../lib/dates.ts";
 import { buildBreakdown } from "../lib/month-breakdown.ts";
 import { summarizeMonth } from "../lib/month-summary.ts";
 import { formatMoney, money } from "../lib/money.ts";
 import type { Currency, Money } from "../lib/money.ts";
+import { resolveMonthRate } from "../services/month-rate.ts";
 import { loadRate } from "./load-rate.ts";
 import { resolveCurrency, resolveMonth } from "./search-params.ts";
 import type { SearchParamValue } from "./search-params.ts";
@@ -47,9 +48,15 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   const month = resolveMonth(params["month"], currentMonth);
   const currency = resolveCurrency(params["currency"], "ARS");
   const database = getDatabase();
-  const rate = await loadRate();
+  const rate = resolveMonthRate({
+    database,
+    month,
+    currentMonth,
+    current: await loadRate(),
+  });
   const income = findIncomeForMonth(database, month);
-  const goal = findInvestmentGoal(database);
+  const goalEntry = findInvestmentGoalForMonth(database, month);
+  const goal = goalEntry?.goal ?? null;
 
   const header = (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -114,7 +121,7 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
   const summary = summarizeMonth(
     {
       salary: income.amount,
-      fixedExpenses: listActiveFixedExpenses(database).map((expense) => expense.amount),
+      fixedExpenses: listActiveFixedExpensesForMonth(database, month).map((expense) => expense.amount),
       investmentGoal: goal ?? money(0, "ARS"),
       variableExpenses: listExpensesByMonth(database, month).map((expense) => ({
         amount: expense.amount,
@@ -166,11 +173,16 @@ const HomePage = async ({ searchParams }: HomePageProps) => {
       </section>
 
       <p className="text-xs text-neutral-600">
-        Cotización: {formatMoney(money(Math.round(rate.rate * 100), "ARS"))} por dólar (
+        {rate.historical
+          ? `Cotización del ${formatDisplayDate(rate.date)}, la última guardada hasta el fin de este mes: `
+          : month < currentMonth
+            ? "No hay cotizaciones guardadas de este mes, se usa la actual: "
+            : "Cotización: "}
+        {formatMoney(money(Math.round(rate.rate * 100), "ARS"))} por dólar (
         {rate.source === "api" ? "MEP" : "manual"}
         {rate.stale ? `, desactualizada, del ${formatDisplayDate(rate.date)}` : ""}).
         {income.inherited ? ` Sueldo heredado de ${formatDisplayMonth(income.month)}.` : ""}
-        {goal === null ? " Todavía no definiste un objetivo de inversión." : ""}
+        {goalEntry === null ? " Todavía no definiste un objetivo de inversión." : ""}
       </p>
     </div>
   );

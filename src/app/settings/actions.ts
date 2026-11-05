@@ -31,7 +31,7 @@ const saveInvestmentGoalAction = async (
   formData: FormData,
 ): Promise<ActionState> =>
   runAction(investmentGoalFormSchema, formData, "Objetivo guardado", SETTINGS_PATHS, (input) =>
-    saveInvestmentGoal(getDatabase(), money(input.amount, input.currency)),
+    saveInvestmentGoal(getDatabase(), toIsoMonth(new Date()), money(input.amount, input.currency)),
   );
 
 const saveManualRateAction = async (
