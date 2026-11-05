@@ -7,7 +7,7 @@ import { toIsoMonth } from "../../lib/dates.ts";
 import { formatCentsForInput, formatMoney, money } from "../../lib/money.ts";
 import { getCurrentRate } from "../../services/exchange-rate-service.ts";
 import type { CurrentRate } from "../../services/exchange-rate-service.ts";
-import ActionForm from "./action-form.tsx";
+import ActionForm from "../../components/action-form.tsx";
 import {
   addCategoryAction,
   deleteCategoryAction,
