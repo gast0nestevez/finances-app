@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isIsoDate } from "./dates.ts";
+import { parseDisplayDate } from "./dates.ts";
 import { currencySchema, exchangeRate, parseAmountToCents } from "./money.ts";
 
 const INVALID_AMOUNT_MESSAGE = "Ingresá un monto válido, por ejemplo 1.500,50";
@@ -52,7 +52,14 @@ const optionalCategorySchema = z.string().transform((value, context) => {
   return id;
 });
 
-const dateSchema = z.string().refine(isIsoDate, { message: "Ingresá una fecha válida" });
+const dateSchema = z.string().transform((value, context) => {
+  const isoDate = parseDisplayDate(value);
+  if (isoDate === null) {
+    context.addIssue({ code: "custom", message: "Ingresá una fecha válida con formato dd/mm/aaaa" });
+    return z.NEVER;
+  }
+  return isoDate;
+});
 
 const booleanFlagSchema = z.enum(["true", "false"]).transform((value) => value === "true");
 

@@ -59,7 +59,7 @@ describe("form schemas", () => {
   });
 
   it("parses an expense with and without category", () => {
-    const base = { date: "2026-11-04", description: " Lunch ", amount: "5.000", currency: "ARS" };
+    const base = { date: "04/11/2026", description: " Lunch ", amount: "5.000", currency: "ARS" };
     expect(expenseFormSchema.parse({ ...base, categoryId: "" })).toEqual({
       date: "2026-11-04",
       description: "Lunch",
@@ -72,7 +72,14 @@ describe("form schemas", () => {
 
   it("rejects impossible dates and empty descriptions", () => {
     const base = { amount: "10", currency: "ARS", categoryId: "" };
-    expect(expenseFormSchema.safeParse({ ...base, date: "2026-02-30", description: "x" }).success).toBe(false);
-    expect(expenseFormSchema.safeParse({ ...base, date: "2026-02-10", description: "  " }).success).toBe(false);
+    expect(expenseFormSchema.safeParse({ ...base, date: "30/02/2026", description: "x" }).success).toBe(false);
+    expect(expenseFormSchema.safeParse({ ...base, date: "10/02/2026", description: "  " }).success).toBe(false);
+  });
+
+  it("only accepts dates written as dd/mm/aaaa", () => {
+    const base = { description: "x", amount: "10", currency: "ARS", categoryId: "" };
+    expect(expenseFormSchema.safeParse({ ...base, date: "2026-02-10" }).success).toBe(false);
+    const result = expenseFormSchema.safeParse({ ...base, date: "hoy" });
+    expect(result.error?.issues[0]?.message).toContain("dd/mm/aaaa");
   });
 });
