@@ -1,3 +1,3 @@
-const HomePage = () => <main className="p-8 text-xl">Finanzas</main>;
+const HomePage = () => <h1 className="text-2xl font-semibold">Finanzas</h1>;
 
 export default HomePage;
