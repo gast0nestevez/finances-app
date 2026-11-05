@@ -1,4 +1,5 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, lt } from "drizzle-orm";
+import { shiftMonth } from "../lib/dates.ts";
 import { exchangeRate } from "../lib/money.ts";
 import type { ExchangeRate } from "../lib/money.ts";
 import type { AppDatabase } from "./client.ts";
@@ -22,6 +23,17 @@ const findLatestRate = (database: AppDatabase): StoredRate | null => {
   return row === undefined ? null : { date: row.date, rate: exchangeRate(row.rate), source: row.source };
 };
 
+const findRateForMonth = (database: AppDatabase, month: string): StoredRate | null => {
+  const row = database
+    .select()
+    .from(exchangeRates)
+    .where(lt(exchangeRates.date, `${shiftMonth(month, 1)}-01`))
+    .orderBy(desc(exchangeRates.date))
+    .limit(1)
+    .get();
+  return row === undefined ? null : { date: row.date, rate: exchangeRate(row.rate), source: row.source };
+};
+
 const saveRate = (database: AppDatabase, stored: StoredRate): void => {
   database
     .insert(exchangeRates)
@@ -33,5 +45,5 @@ const saveRate = (database: AppDatabase, stored: StoredRate): void => {
     .run();
 };
 
-export { findLatestRate, findRateByDate, saveRate };
+export { findLatestRate, findRateByDate, findRateForMonth, saveRate };
 export type { RateSource, StoredRate };
