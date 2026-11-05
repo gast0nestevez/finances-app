@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { exchangeRate, money } from "./money.ts";
-import { summarizeMonth } from "./month-summary.ts";
+import { summarizeMonth, sumVariableExpenses } from "./month-summary.ts";
 import type { MonthInput } from "./month-summary.ts";
 
 const currentRate = exchangeRate(1000);
@@ -38,5 +38,16 @@ describe("summarizeMonth", () => {
       currentRate,
     );
     expect(summary.free.amount).toBeLessThan(0);
+  });
+});
+
+describe("sumVariableExpenses", () => {
+  it("converts each expense with its own registration rate", () => {
+    const total = sumVariableExpenses(input.variableExpenses, "ARS");
+    expect(total).toEqual(money(109_000_00, "ARS"));
+  });
+
+  it("returns zero for no expenses", () => {
+    expect(sumVariableExpenses([], "USD")).toEqual(money(0, "USD"));
   });
 });

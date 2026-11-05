@@ -22,6 +22,19 @@ type MonthSummary = Readonly<{
   free: Money;
 }>;
 
+const sumVariableExpenses = (
+  expenses: readonly VariableExpense[],
+  currency: Currency,
+): Money =>
+  money(
+    expenses.reduce<number>(
+      (accumulated, expense) =>
+        accumulated + convert(expense.amount, currency, expense.rateAtRegistration).amount,
+      0,
+    ),
+    currency,
+  );
+
 const summarizeMonth = (
   input: MonthInput,
   displayCurrency: Currency,
@@ -30,12 +43,7 @@ const summarizeMonth = (
   const salary = convert(input.salary, displayCurrency, currentRate);
   const fixed = sum(input.fixedExpenses, displayCurrency, currentRate);
   const investment = convert(input.investmentGoal, displayCurrency, currentRate);
-  const variableTotal = input.variableExpenses.reduce<number>(
-    (accumulated, expense) =>
-      accumulated + convert(expense.amount, displayCurrency, expense.rateAtRegistration).amount,
-    0,
-  );
-  const variable = money(variableTotal, displayCurrency);
+  const variable = sumVariableExpenses(input.variableExpenses, displayCurrency);
   const free = money(
     salary.amount - fixed.amount - investment.amount - variable.amount,
     displayCurrency,
@@ -43,5 +51,5 @@ const summarizeMonth = (
   return { currency: displayCurrency, salary, fixed, investment, variable, free };
 };
 
-export { summarizeMonth };
+export { summarizeMonth, sumVariableExpenses };
 export type { MonthInput, MonthSummary, VariableExpense };
