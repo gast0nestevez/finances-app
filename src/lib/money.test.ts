@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { convert, exchangeRate, money, parseAmountToCents, sum } from "./money.ts";
+import { cents, convert, exchangeRate, formatCentsForInput, money, parseAmountToCents, sum } from "./money.ts";
 
 const rate = exchangeRate(1200);
 
@@ -52,5 +52,19 @@ describe("exchangeRate", () => {
   it("rejects non positive values", () => {
     expect(() => exchangeRate(0)).toThrow(RangeError);
     expect(() => exchangeRate(-1)).toThrow(RangeError);
+  });
+});
+
+describe("formatCentsForInput", () => {
+  it("omits the decimals for whole amounts", () => {
+    expect(formatCentsForInput(cents(50_000))).toBe("500");
+  });
+
+  it("uses a comma and two decimals otherwise", () => {
+    expect(formatCentsForInput(cents(123_405))).toBe("1234,05");
+  });
+
+  it("round trips through the parser", () => {
+    expect(parseAmountToCents(formatCentsForInput(cents(987_654)))).toBe(987_654);
   });
 });

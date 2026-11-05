@@ -54,6 +54,12 @@ const parseAmountToCents = (input: string): Cents => {
   return cents(Math.round(Number(normalized) * 100));
 };
 
+const formatCentsForInput = (value: Cents): string => {
+  const whole = Math.floor(value / 100);
+  const fraction = value % 100;
+  return fraction === 0 ? String(whole) : `${whole},${String(fraction).padStart(2, "0")}`;
+};
+
 const formatMoney = (value: Money): string => {
   const formatter = new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -68,6 +74,7 @@ export {
   convert,
   currencySchema,
   exchangeRate,
+  formatCentsForInput,
   formatMoney,
   money,
   parseAmountToCents,
