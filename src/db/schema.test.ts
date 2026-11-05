@@ -2,7 +2,15 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createDatabase } from "./client.ts";
 import type { AppDatabase } from "./client.ts";
-import { categories, exchangeRates, expenses, fixedExpenses, income, investmentGoal } from "./schema.ts";
+import {
+  categories,
+  exchangeRates,
+  expenses,
+  fixedExpenses,
+  fixedExpenseVersions,
+  income,
+  investmentGoals,
+} from "./schema.ts";
 
 let database: AppDatabase;
 
@@ -34,27 +42,47 @@ describe("schema constraints", () => {
     ).toThrow();
   });
 
-  it("rejects non positive expense amounts", () => {
+  it("rejects non positive fixed expense amounts", () => {
+    const created = database.insert(fixedExpenses).values({}).returning().get();
     expect(() =>
       database
-        .insert(fixedExpenses)
-        .values({ name: "Rent", amountCents: 0, currency: "ARS" })
+        .insert(fixedExpenseVersions)
+        .values({ fixedExpenseId: created.id, fromMonth: "2026-11", name: "Rent", amountCents: 0, currency: "ARS", active: true })
         .run(),
     ).toThrow();
   });
 
   it("rejects unsupported currencies at SQL level", () => {
+    const created = database.insert(fixedExpenses).values({}).returning().get();
     expect(() =>
       database.$client
-        .prepare("INSERT INTO fixed_expenses (name, amount_cents, currency) VALUES ('X', 100, 'EUR')")
+        .prepare(
+          "INSERT INTO fixed_expense_versions (fixed_expense_id, from_month, name, amount_cents, currency, active) VALUES (?, '2026-11', 'X', 100, 'EUR', 1)",
+        )
+        .run(created.id),
+    ).toThrow();
+  });
+
+  it("rejects two versions of the same expense for the same month", () => {
+    const created = database.insert(fixedExpenses).values({}).returning().get();
+    const version = { fixedExpenseId: created.id, fromMonth: "2026-11", name: "Rent", amountCents: 100, currency: "ARS" as const, active: true };
+    database.insert(fixedExpenseVersions).values(version).run();
+    expect(() => database.insert(fixedExpenseVersions).values(version).run()).toThrow();
+  });
+
+  it("rejects versions that reference a missing fixed expense", () => {
+    expect(() =>
+      database
+        .insert(fixedExpenseVersions)
+        .values({ fixedExpenseId: 999, fromMonth: "2026-11", name: "Rent", amountCents: 100, currency: "ARS", active: true })
         .run(),
     ).toThrow();
   });
 
-  it("keeps a single investment goal row", () => {
-    database.insert(investmentGoal).values({ id: 1, amountCents: 50_000, currency: "USD" }).run();
+  it("keeps one investment goal per month", () => {
+    database.insert(investmentGoals).values({ month: "2026-11", amountCents: 50_000, currency: "USD" }).run();
     expect(() =>
-      database.insert(investmentGoal).values({ id: 2, amountCents: 1, currency: "USD" }).run(),
+      database.insert(investmentGoals).values({ month: "2026-11", amountCents: 1, currency: "USD" }).run(),
     ).toThrow();
   });
 

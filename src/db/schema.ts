@@ -24,18 +24,47 @@ const income = sqliteTable(
   ],
 );
 
-const fixedExpenses = sqliteTable(
-  "fixed_expenses",
+const fixedExpenses = sqliteTable("fixed_expenses", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+});
+
+const fixedExpenseVersions = sqliteTable(
+  "fixed_expense_versions",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
+    fixedExpenseId: integer("fixed_expense_id")
+      .notNull()
+      .references(() => fixedExpenses.id, { onDelete: "cascade" }),
+    fromMonth: text("from_month").notNull(),
     name: text("name").notNull(),
     amountCents: integer("amount_cents").notNull(),
     currency: text("currency", { enum: ["ARS", "USD"] }).notNull(),
-    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    active: integer("active", { mode: "boolean" }).notNull(),
   },
   (table) => [
-    check("fixed_expenses_amount_positive", sql`${table.amountCents} > 0`),
-    check("fixed_expenses_currency", sql`${table.currency} IN ('ARS', 'USD')`),
+    uniqueIndex("fixed_expense_versions_unique").on(table.fixedExpenseId, table.fromMonth),
+    check(
+      "fixed_expense_versions_month_format",
+      sql`${table.fromMonth} GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]'`,
+    ),
+    check("fixed_expense_versions_amount_positive", sql`${table.amountCents} > 0`),
+    check("fixed_expense_versions_currency", sql`${table.currency} IN ('ARS', 'USD')`),
+  ],
+);
+
+const investmentGoals = sqliteTable(
+  "investment_goals",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    month: text("month").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    currency: text("currency", { enum: ["ARS", "USD"] }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("investment_goals_month_unique").on(table.month),
+    check("investment_goals_month_format", sql`${table.month} GLOB '[0-9][0-9][0-9][0-9]-[0-1][0-9]'`),
+    check("investment_goals_amount_non_negative", sql`${table.amountCents} >= 0`),
+    check("investment_goals_currency", sql`${table.currency} IN ('ARS', 'USD')`),
   ],
 );
 
@@ -61,20 +90,6 @@ const expenses = sqliteTable(
   ],
 );
 
-const investmentGoal = sqliteTable(
-  "investment_goal",
-  {
-    id: integer("id").primaryKey(),
-    amountCents: integer("amount_cents").notNull(),
-    currency: text("currency", { enum: ["ARS", "USD"] }).notNull(),
-  },
-  (table) => [
-    check("investment_goal_single_row", sql`${table.id} = 1`),
-    check("investment_goal_currency", sql`${table.currency} IN ('ARS', 'USD')`),
-    check("investment_goal_amount_non_negative", sql`${table.amountCents} >= 0`),
-  ],
-);
-
 const exchangeRates = sqliteTable(
   "exchange_rates",
   {
@@ -90,4 +105,12 @@ const exchangeRates = sqliteTable(
   ],
 );
 
-export { categories, exchangeRates, expenses, fixedExpenses, income, investmentGoal };
+export {
+  categories,
+  exchangeRates,
+  expenses,
+  fixedExpenses,
+  fixedExpenseVersions,
+  income,
+  investmentGoals,
+};

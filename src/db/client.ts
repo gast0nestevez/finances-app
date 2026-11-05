@@ -19,11 +19,27 @@ const createDatabase = (path: string) => {
 
 type AppDatabase = ReturnType<typeof createDatabase>;
 
+const MIGRATIONS_FOLDER = "drizzle";
+
+const migrateDatabase = (database: AppDatabase, migrationsFolder: string = MIGRATIONS_FOLDER): void => {
+  const sqlite = database.$client;
+  sqlite.pragma("foreign_keys = OFF");
+  try {
+    migrate(database, { migrationsFolder });
+    const violations = sqlite.pragma("foreign_key_check");
+    if (Array.isArray(violations) && violations.length > 0) {
+      throw new Error(`Migration left ${violations.length} foreign key violations`);
+    }
+  } finally {
+    sqlite.pragma("foreign_keys = ON");
+  }
+};
+
 const createMigratedDatabase = (path: string): AppDatabase => {
   const database = createDatabase(path);
-  migrate(database, { migrationsFolder: "drizzle" });
+  migrateDatabase(database);
   return database;
 };
 
-export { createDatabase, createMigratedDatabase, DEFAULT_DATABASE_PATH };
+export { createDatabase, createMigratedDatabase, DEFAULT_DATABASE_PATH, migrateDatabase };
 export type { AppDatabase };
