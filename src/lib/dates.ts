@@ -27,4 +27,40 @@ const isIsoDate = (value: string): boolean => {
   return date.toISOString().slice(0, 10) === value;
 };
 
-export { isIsoDate, isIsoMonth, shiftMonth, toIsoDate, toIsoMonth };
+const formatDisplayDate = (isoDate: string): string => {
+  if (!isIsoDate(isoDate)) {
+    throw new RangeError(`Invalid date: ${isoDate}`);
+  }
+  const [year, month, day] = isoDate.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+const formatDisplayMonth = (isoMonth: string): string => {
+  if (!isIsoMonth(isoMonth)) {
+    throw new RangeError(`Invalid month: ${isoMonth}`);
+  }
+  const [year, month] = isoMonth.split("-");
+  return `${month}/${year}`;
+};
+
+const DISPLAY_DATE_PATTERN = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+
+const parseDisplayDate = (input: string): string | null => {
+  const match = DISPLAY_DATE_PATTERN.exec(input.trim());
+  if (match === null) {
+    return null;
+  }
+  const isoDate = `${match[3]}-${pad(Number(match[2]))}-${pad(Number(match[1]))}`;
+  return isIsoDate(isoDate) ? isoDate : null;
+};
+
+export {
+  formatDisplayDate,
+  formatDisplayMonth,
+  isIsoDate,
+  isIsoMonth,
+  parseDisplayDate,
+  shiftMonth,
+  toIsoDate,
+  toIsoMonth,
+};
