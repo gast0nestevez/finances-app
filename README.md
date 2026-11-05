@@ -6,12 +6,16 @@ Está pensada para correr **localmente en tu PC**, sin cuentas ni servicios exte
 
 ## Funcionalidades
 
-- **Dashboard (`/`)**: resumen del mes (sueldo, fijos, inversión, gastos y libre), barra de distribución, selector de mes y toggle ARS/USD.
+- **Dashboard (`/`)**: resumen del mes (sueldo, fijos, inversión, gastos y libre), barra de distribución, gráfico de gastos por categoría, selector de mes y toggle ARS/USD.
 - **Gastos (`/expenses`)**: carga rápida de gastos del día a día con fecha, monto, moneda y categoría. Cada gasto se puede editar o eliminar. Navegación por mes y totales.
 - **Fijos (`/fixed`)**: gastos mensuales recurrentes, en ARS o USD, que se pueden activar y desactivar sin borrarlos.
 - **Configuración (`/settings`)**: sueldo mensual, objetivo de inversión, cotización del dólar y lista editable de categorías.
 
 Las fechas se muestran y se ingresan como `dd/mm/aaaa`, y los meses como `mm/aaaa`. Internamente se guardan en formato ISO (`aaaa-mm-dd`), que ordena bien en la base.
+
+### Gráfico por categoría
+
+El Dashboard muestra en qué categorías se fue el gasto del mes elegido, como barras ordenadas de mayor a menor, en la moneda que tengas seleccionada. Cada gasto se convierte con la cotización del día en que se cargó. Pasando el mouse (o enfocando con el teclado) sobre una barra ves el monto, el porcentaje del total y la cantidad de gastos. Si hay más de 8 categorías, las más chicas se agrupan en "Otras". Debajo hay una vista de tabla con los mismos datos. Solo incluye los gastos del día a día: los gastos fijos no tienen categoría.
 
 ### Cómo se calcula el libre
 
