@@ -16,6 +16,12 @@ const RootLayout = ({ children }: RootLayoutProps) => (
           <Link href="/" className="hover:underline">
             Inicio
           </Link>
+          <Link href="/expenses" className="hover:underline">
+            Gastos
+          </Link>
+          <Link href="/fixed" className="hover:underline">
+            Fijos
+          </Link>
           <Link href="/settings" className="hover:underline">
             Configuración
           </Link>
