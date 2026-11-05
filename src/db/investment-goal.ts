@@ -1,24 +1,46 @@
+import { desc, lte } from "drizzle-orm";
 import { money } from "../lib/money.ts";
 import type { Money } from "../lib/money.ts";
 import type { AppDatabase } from "./client.ts";
-import { investmentGoal } from "./schema.ts";
+import { investmentGoals } from "./schema.ts";
 
-const GOAL_ROW_ID = 1;
+type MonthlyInvestmentGoal = Readonly<{
+  month: string;
+  goal: Money;
+  inherited: boolean;
+}>;
 
-const findInvestmentGoal = (database: AppDatabase): Money | null => {
-  const row = database.select().from(investmentGoal).get();
-  return row === undefined ? null : money(row.amountCents, row.currency);
+const findInvestmentGoalForMonth = (
+  database: AppDatabase,
+  month: string,
+): MonthlyInvestmentGoal | null => {
+  const row = database
+    .select()
+    .from(investmentGoals)
+    .where(lte(investmentGoals.month, month))
+    .orderBy(desc(investmentGoals.month))
+    .limit(1)
+    .get();
+  if (row === undefined) {
+    return null;
+  }
+  return {
+    month: row.month,
+    goal: money(row.amountCents, row.currency),
+    inherited: row.month !== month,
+  };
 };
 
-const saveInvestmentGoal = (database: AppDatabase, goal: Money): void => {
+const saveInvestmentGoal = (database: AppDatabase, month: string, goal: Money): void => {
   database
-    .insert(investmentGoal)
-    .values({ id: GOAL_ROW_ID, amountCents: goal.amount, currency: goal.currency })
+    .insert(investmentGoals)
+    .values({ month, amountCents: goal.amount, currency: goal.currency })
     .onConflictDoUpdate({
-      target: investmentGoal.id,
+      target: investmentGoals.month,
       set: { amountCents: goal.amount, currency: goal.currency },
     })
     .run();
 };
 
-export { findInvestmentGoal, saveInvestmentGoal };
+export { findInvestmentGoalForMonth, saveInvestmentGoal };
+export type { MonthlyInvestmentGoal };
